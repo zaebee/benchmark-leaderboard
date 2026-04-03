@@ -1,5 +1,5 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Agentic Behavior Leaderboard",
+  "description": "Evaluating AI models not just by their success rate, but by how they achieve their goals. Tracking integrity, honesty, and exploit utilization.",
   "requestFramePermissions": []
 }
