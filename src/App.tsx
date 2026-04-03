@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
-import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon } from 'lucide-react';
+import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon, X, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -26,6 +26,15 @@ interface ModelStat {
   insight: string;
   full_insight: string;
 }
+
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+  'direct_exploiter': 'Directly violates environment constraints or rules to achieve the goal.',
+  'meta_exploit': 'Modifies the evaluation framework, sandbox, or scoring mechanism itself.',
+  'goal_hacker': 'Aggressively optimizes for the success criteria, finding unintended loopholes.',
+  'looper': 'Gets stuck in repetitive action loops when encountering errors or unexpected states.',
+  'adaptive': 'Dynamically changes strategy when initial attempts fail, showing high resilience.',
+  'efficient': 'Achieves goals with minimal steps, tool calls, or token usage.'
+};
 
 const getColor = (val: number, type: 'good-high' | 'good-low' | 'neutral' = 'good-high') => {
   if (type === 'good-high') {
@@ -61,6 +70,7 @@ export default function App() {
   const [selectedRadarModels, setSelectedRadarModels] = useState<string[]>([]);
   const [data, setData] = useState<ModelStat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('https://gist.githubusercontent.com/zaebee/53515a5371be237b81c52fe8fae04713/raw/c3afe10de36a1e2d6848713eced1a22d52400f4f/leaderboard.json')
@@ -95,8 +105,13 @@ export default function App() {
     });
   };
 
-  const sortedData = useMemo(() => {
-    return [...data].sort((a, b) => {
+  const filteredAndSortedData = useMemo(() => {
+    let filtered = data;
+    if (activeFilter) {
+      filtered = data.filter(stat => stat.flags.includes(activeFilter));
+    }
+
+    return [...filtered].sort((a, b) => {
       if (mode === 'performance') {
         return b.score - a.score;
       } else if (mode === 'fairness') {
@@ -108,7 +123,7 @@ export default function App() {
       }
       return 0;
     });
-  }, [mode, data]);
+  }, [mode, data, activeFilter]);
 
   const radarData = useMemo(() => {
     const metrics = [
@@ -219,14 +234,50 @@ export default function App() {
           </div>
         </div>
 
+        {/* Active Filter Banner */}
+        <AnimatePresence>
+          {activeFilter && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 shrink-0">
+                    <Filter className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-indigo-300 font-medium flex items-center gap-2">
+                      Filtered by Tag: <span className="text-white bg-indigo-500/20 px-2 py-0.5 rounded text-sm">{activeFilter}</span>
+                    </h3>
+                    <p className="text-sm text-indigo-200/70 mt-1">
+                      {FLAG_DESCRIPTIONS[activeFilter] || `Showing models exhibiting the ${activeFilter} behavior.`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveFilter(null)}
+                  className="p-2 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors shrink-0"
+                  title="Clear filter"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Leaderboard Table */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="border-b border-neutral-800 bg-neutral-950/50 text-xs uppercase tracking-wider text-neutral-500">
                   <th className="p-4 font-medium">Rank</th>
                   <th className="p-4 font-medium">Model</th>
+                  <th className="p-4 font-medium">Flags</th>
                   <th className="p-4 font-medium text-right">Score</th>
                   <th className="p-4 font-medium text-right">Success</th>
                   <th className="p-4 font-medium text-right">Integrity</th>
@@ -237,7 +288,7 @@ export default function App() {
               </thead>
               <tbody className="divide-y divide-neutral-800/50">
                 <AnimatePresence mode="popLayout">
-                  {sortedData.map((stat, index) => (
+                  {filteredAndSortedData.map((stat, index) => (
                     <motion.tr 
                       key={stat.id}
                       layout
@@ -252,6 +303,23 @@ export default function App() {
                       </td>
                       <td className="p-4 font-medium text-neutral-200">
                         {stat.model}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {stat.flags.map(flag => (
+                            <button 
+                              key={flag}
+                              onClick={() => setActiveFilter(flag)}
+                              className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded border transition-colors ${
+                                activeFilter === flag 
+                                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' 
+                                  : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200'
+                              }`}
+                            >
+                              {flag}
+                            </button>
+                          ))}
+                        </div>
                       </td>
                       <td className="p-4 text-right font-mono font-semibold text-indigo-400">
                         {stat.score.toFixed(1)}
@@ -355,7 +423,7 @@ export default function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AnimatePresence mode="popLayout">
-              {sortedData.map((stat, index) => (
+              {filteredAndSortedData.map((stat, index) => (
                 <motion.div 
                   key={`insight-${stat.id}`}
                   layout
@@ -371,10 +439,18 @@ export default function App() {
                     </h3>
                     <div className="flex flex-wrap justify-end gap-2">
                       {stat.flags.map(flag => (
-                        <span key={flag} className="px-2 py-1 text-xs font-medium bg-neutral-950 text-neutral-300 rounded-md border border-neutral-800 flex items-center gap-1">
+                        <button 
+                          key={flag} 
+                          onClick={() => setActiveFilter(flag)}
+                          className={`px-2 py-1 text-xs font-medium rounded-md border flex items-center gap-1 transition-colors ${
+                            activeFilter === flag
+                              ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                              : 'bg-neutral-950 text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                          }`}
+                        >
                           {flag.includes('exploit') || flag.includes('hacker') ? <ShieldAlert className="w-3 h-3 text-rose-400" /> : <Zap className="w-3 h-3 text-amber-400" />}
                           {flag}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -514,3 +590,4 @@ export default function App() {
     </div>
   );
 }
+
