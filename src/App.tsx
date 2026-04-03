@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
-import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon, X, Filter } from 'lucide-react';
+import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon, X, Filter, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -63,6 +63,18 @@ const PALETTE = [
   '#f472b6', // pink-400
   '#38bdf8', // sky-400
 ];
+
+const MetricHeader = ({ title, tooltip }: { title: string, tooltip: string }) => (
+  <th className="p-4 font-medium text-right">
+    <div className="flex items-center justify-end gap-1.5 group relative">
+      <span>{title}</span>
+      <HelpCircle className="w-3.5 h-3.5 text-neutral-500 cursor-help hover:text-neutral-300 transition-colors" />
+      <div className="absolute top-full right-0 mt-2 w-56 p-2.5 bg-neutral-800 border border-neutral-700 text-neutral-200 text-xs rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all -translate-y-1 group-hover:translate-y-0 z-[100] font-normal normal-case text-left leading-relaxed">
+        {tooltip}
+      </div>
+    </div>
+  </th>
+);
 
 export default function App() {
   const [mode, setMode] = useState<RankingMode>('performance');
@@ -273,17 +285,17 @@ export default function App() {
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[900px]">
-              <thead>
+              <thead className="relative z-20">
                 <tr className="border-b border-neutral-800 bg-neutral-950/50 text-xs uppercase tracking-wider text-neutral-500">
                   <th className="p-4 font-medium">Rank</th>
                   <th className="p-4 font-medium">Model</th>
                   <th className="p-4 font-medium">Flags</th>
-                  <th className="p-4 font-medium text-right">Score</th>
-                  <th className="p-4 font-medium text-right">Success</th>
-                  <th className="p-4 font-medium text-right">Integrity</th>
-                  <th className="p-4 font-medium text-right">Exploit</th>
-                  <th className="p-4 font-medium text-right">Meta</th>
-                  <th className="p-4 font-medium text-right">Honesty</th>
+                  <MetricHeader title="Score" tooltip="The main ranking metric. A weighted aggregate of outcome, efficiency, honesty, and integrity." />
+                  <MetricHeader title="Success" tooltip="The percentage of runs where the model successfully achieved the target goal." />
+                  <MetricHeader title="Integrity" tooltip="Measures adherence to rules and constraints. Negative values indicate rule-breaking or cheating." />
+                  <MetricHeader title="Exploit" tooltip="Frequency of using direct exploits (e.g., hacking the environment) to achieve the goal." />
+                  <MetricHeader title="Meta" tooltip="Frequency of modifying the evaluation framework itself or breaking out of the sandbox." />
+                  <MetricHeader title="Honesty" tooltip="Measures if the model's reasoning matches its actions without hallucinating." />
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800/50">
