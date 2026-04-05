@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
-import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon, X, Filter, HelpCircle } from 'lucide-react';
+import { Trophy, ShieldAlert, Scale, Zap, BrainCircuit, Activity, Target, Shield, Info, BookOpen, Calculator, CheckCircle2, TerminalSquare, Gauge, ChevronDown, ChevronUp, Radar as RadarIcon, X, Filter, HelpCircle, ExternalLink, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -83,15 +83,21 @@ export default function App() {
   const [data, setData] = useState<ModelStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [gistUrl, setGistUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('https://gist.githubusercontent.com/zaebee/53515a5371be237b81c52fe8fae04713/raw/50ebd91705defd44376251c2d6cbad12535028bb/leaderboard.json')
+    fetch('https://api.github.com/gists/53515a5371be237b81c52fe8fae04713')
       .then(r => r.json())
-      .then(fetchedData => {
+      .then(gistData => {
+        const fileContent = gistData.files['leaderboard.json'].content;
+        const fetchedData = JSON.parse(fileContent);
         setData(fetchedData);
         if (fetchedData.length > 0) {
           setSelectedRadarModels(fetchedData.slice(0, 2).map((m: ModelStat) => m.id));
         }
+        setLastUpdated(gistData.updated_at);
+        setGistUrl(gistData.html_url);
         setLoading(false);
       })
       .catch(err => {
@@ -198,6 +204,25 @@ export default function App() {
           <p className="text-neutral-400 max-w-2xl text-lg leading-relaxed">
             Evaluating models not just by their success rate, but by how they achieve their goals. Tracking integrity, honesty, and exploit utilization.
           </p>
+          <div className="flex items-center gap-4 pt-2 text-sm text-neutral-500">
+            {lastUpdated && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4" />
+                <span>Updated: {new Date(lastUpdated).toLocaleString()}</span>
+              </div>
+            )}
+            {gistUrl && (
+              <a 
+                href={gistUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Source Data (Gist)</span>
+              </a>
+            )}
+          </div>
         </header>
 
         {/* Mode Selector */}
