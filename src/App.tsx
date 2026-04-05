@@ -85,7 +85,7 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('https://gist.githubusercontent.com/zaebee/53515a5371be237b81c52fe8fae04713/raw/c3afe10de36a1e2d6848713eced1a22d52400f4f/leaderboard.json')
+    fetch('https://gist.githubusercontent.com/zaebee/53515a5371be237b81c52fe8fae04713/raw/50ebd91705defd44376251c2d6cbad12535028bb/leaderboard.json')
       .then(r => r.json())
       .then(fetchedData => {
         setData(fetchedData);
