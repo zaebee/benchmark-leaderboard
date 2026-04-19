@@ -199,7 +199,10 @@ export default function App() {
         <header className="space-y-3 border-b border-neutral-800 pb-8">
           <div className="flex items-center gap-3 text-indigo-400">
             <Activity className="w-8 h-8" />
-            <h1 className="text-3xl font-bold tracking-tight text-white">Agentic Behavior Leaderboard</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-white">Agentic Behavior Leaderboard</h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold border border-indigo-500/20">v1.1</span>
+            </div>
           </div>
           <p className="text-neutral-400 max-w-2xl text-lg leading-relaxed">
             Evaluating models not just by their success rate, but by how they achieve their goals. Tracking integrity, honesty, and exploit utilization.
